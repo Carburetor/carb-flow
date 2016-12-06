@@ -39,10 +39,11 @@ class Campaign::CreateWithContacts
   # Provide by Transaction, this actually won't be written and shouldn't be
   # touched
   def call(obj)
-    wrapped = wrap_in_either(obj)
+    # Any monad is fine, even a maybe, they all respond to `bind`
+    wrapped = wrap_in_right_if_not_inside_monad(obj)
 
     steps.inject(wrapped) do |result, step|
-      step.(result)
+      result.bind { |value| step.(value) }
     end
   end
 
@@ -71,3 +72,30 @@ end
 
 transaction = Campaign::CreateWithContacts.new
 transaction.("whatever")
+
+# SERVICE
+
+# We need a method that takes an object and returns a Right(value) or the object
+# itself if it's a monad (of any kind)
+
+module Carb::Service
+  # Must return an Left or Right
+  def call(**args)
+    raise NotImplementedError
+  end
+end
+
+
+# We will provide a test helper that will check we adhere to the interface
+# It will check the following things:
+# - #call must return a Monad
+# - #call must accept a single argument (a hashmap is a valid argument)
+# - This shared examples must work with any lambda returning a monad
+it_behaves_like "Carb::Service"
+
+# - The object MUST have a single public method (#call) (check public_methods - Proc.instance_methods), maybe this is too restrictive?
+# - The object must support `subscribe` (from Wisper)
+it_behaves_like "Carb::Service::Strict"
+
+# Eventually we can provide a Carb:Service::Lambda which takes a lambda, store
+# it inside and provides "subscribe"
