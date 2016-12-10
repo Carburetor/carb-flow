@@ -10,7 +10,7 @@ module Carb::Steps
     # @param service [::Carb::Service]
     # @param args [Hash{Symbol => Object}] arguments to be passed to service
     #   when called
-    # @return [::Carb::Monads::Monad]
+    # @return a monad
     def call(service:, args:)
       service.(**args)
     end
