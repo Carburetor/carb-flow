@@ -2,15 +2,15 @@ require "spec_helper"
 require "carb-service"
 require "carb/steps/step"
 require "carb/monads"
-require "carb/service/rspec"
+require "carb/rspec/service"
 
 describe Carb::Steps::Step do
-  include Carb::Service::RSpec
+  include Carb::RSpec::Service
 
   before do
     @dummy_service = instance_spy(
       Carb::Service,
-      call: Carb::Monads.monadize(nil)
+      call: Carb::Monads.monadize(123)
     )
   end
 

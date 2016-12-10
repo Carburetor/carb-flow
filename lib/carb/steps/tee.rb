@@ -1,6 +1,6 @@
 require "carb-core"
-require "carb-service"
-require "carb-service/monads"
+require "carb/service"
+require "carb/monads"
 
 module Carb::Steps
   # Run the supplied service and return the passed argument wrapped in a
@@ -16,8 +16,12 @@ module Carb::Steps
     #   {::Carb::Monads::Either::Right} monad if successful, otherwise
     #   wrapped in a {::Carb::Monads::Either::Failure}
     def call(service:, args:)
-      # TODO: Write logic
-      # service.(**args)
+      monad = service.(**args)
+
+      Carb::Monads::SuccessMatcher.(monad) do |match|
+        match.success { |value| Carb::Monads::Right(args) }
+        match.failure { |value| Carb::Monads::Left(args) }
+      end
     end
   end
 end

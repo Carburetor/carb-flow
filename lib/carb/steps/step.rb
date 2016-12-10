@@ -1,5 +1,5 @@
 require "carb-core"
-require "carb-service"
+require "carb/service"
 
 module Carb::Steps
   # Simply run the supplied service
