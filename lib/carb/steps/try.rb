@@ -1,11 +1,13 @@
 require "carb-core"
 require "carb/service"
 require "carb/monads"
+require "carb/steps/base"
 
 module Carb::Steps
   # Run the supplied service with a {::Carb::Monads::Try} monad
   class Try
     include ::Carb::Service
+    include Base
 
     # Run #call on the passed service with given args
     # @param service [::Carb::Service]
