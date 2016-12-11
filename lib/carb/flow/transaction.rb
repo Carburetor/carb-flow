@@ -6,6 +6,9 @@ require "carb/monads/success_matcher"
 
 module Carb::Flow
   # TODO: Add wisper to Carb::Service? (or stick to Steps? Or transaction only?)
+  #   probably to steps is the best idea (leaves the services uncluttered), but
+  #   discuss with Dave
+  # TODO: Refactor code to use `carb` and not `carb-core` when requiring
   class Transaction
     include ::Carb::Service
     Action = Struct.new(:name, :service, :args)
