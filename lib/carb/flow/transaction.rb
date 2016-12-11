@@ -24,6 +24,8 @@ module Carb::Flow
     end
 
     def call(**args)
+      # TODO: Extract an ActionList and Action class to deal with whole action
+      #   resolution
       execute_each_action(args) do |result_monad, is_last|
         return result_monad if is_last
 
