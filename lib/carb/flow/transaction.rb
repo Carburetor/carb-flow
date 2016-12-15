@@ -14,8 +14,6 @@ module Carb::Flow
     include ::Carb::Service
     include ::Wisper::Publisher
 
-    Action = Struct.new(:name, :service, :args)
-
     protected
 
     attr_reader :steps
@@ -24,18 +22,19 @@ module Carb::Flow
     public
 
     # @param steps [Hash{ Symbol => ::Carb::Service }]
-    def initialize(steps: ::Carb::Steps::All)
+    # @param actions [ActionList] optional action list handler
+    def initialize(steps: ::Carb::Steps::All, actions: ActionList.new)
       @steps   = steps
-      @actions = []
+      @actions = actions
     end
 
     def call(**args)
-      # TODO: Extract an ActionList and Action class to deal with whole action
-      #   resolution
-      execute_each_action(args) do |result_monad, is_last|
-        return result_monad if is_last
+      result_monad = ::Carb::Monads.monadize(args)
 
-        extract_on_success_or_exit(result_monad) { |_| return result_monad }
+      actions.each do |action, is_last|
+        result_monad = execute_action(action, result_monad)
+
+        return result_monad if is_last || failure?(result_monad)
       end
     end
 
@@ -51,40 +50,32 @@ module Carb::Flow
       step_names.include?(method_name.to_sym) || super
     end
 
-    protected
-
-    def execute_each_action(initial_args)
-      result_monad = ::Carb::Monads.monadize(initial_args)
-
-      actions.each_with_index do |action, index|
-        result_monad = execute_action(action, result_monad)
-        yield(result_monad, ((index + 1) == actions.size))
-      end
-    end
-
     private
-
-    def step_names
-      @step_names ||= steps.keys
-    end
 
     def append_action(step_name, service_name, **args)
       self.actions << Action.new(step_name, service_name, args)
     end
 
+    def step_names
+      @step_names ||= steps.keys
+    end
+
     def execute_action(action, result_monad)
-      step      = steps[action.name]
-      service   = send(action.service)
+      step      = steps[action.step_name]
+      service   = send(action.service_name)
       step_args = action.args
 
       step.(service: service, args: result_monad.value, **step_args)
     end
 
-    def extract_on_success_or_exit(result_monad, &block)
+    def failure?(result_monad)
       ::Carb::Monads::SuccessMatcher.(result_monad) do |match|
-        match.success { |value| value }
-        match.failure(&block)
+        match.success { |_| true }
+        match.failure { |_| false }
       end
     end
   end
 end
+
+require "carb/flow/transaction/action"
+require "carb/flow/transaction/action_list"
