@@ -29,13 +29,11 @@ module Carb::Flow
     end
 
     def call(**args)
-      result_monad = ::Carb::Monads.monadize(args)
+      setup(**args)
 
-      actions.each do |action, is_last|
-        result_monad = execute_action(action, result_monad)
+      args_monad = ::Carb::Monads.monadize(args)
 
-        return result_monad if is_last || failure?(result_monad)
-      end
+      execute_actions(args_monad)
     end
 
     def method_missing(method_name, *args, &block)
@@ -50,7 +48,22 @@ module Carb::Flow
       step_names.include?(method_name.to_sym) || super
     end
 
+    protected
+
+    # Can be overwritten to generate steps in subclasses
+    # @params args [Hash{ Symbol => Object }] arguments as supplied to {#call}
+    def setup(**args)
+    end
+
     private
+
+    def execute_actions(result_monad)
+      actions.each do |action, is_last|
+        result_monad, is_failure = execute_action(action, result_monad)
+
+        return result_monad if is_last || is_failure
+      end
+    end
 
     def append_action(step_name, service_name, **args)
       self.actions << Action.new(step_name, service_name, args)
@@ -61,11 +74,26 @@ module Carb::Flow
     end
 
     def execute_action(action, result_monad)
-      step      = steps[action.step_name]
-      service   = send(action.service_name)
-      step_args = action.args
+      broadcast_step_start(action)
+
+      result     = invoke_step(action)
+      is_failure = failure?(result)
+
+      broadcast_step_end(action)
+
+      return result, is_failure
+    end
+
+    def invoke_step(action)
+      step      = get_step(action)
+      service   = get_service(action)
+      step_args = get_args(action)
 
       step.(service: service, args: result_monad.value, **step_args)
+    end
+
+    def broadcast_step_start(action)
+      # broadcast(:step_start, action.step_name, action.)
     end
 
     def failure?(result_monad)
@@ -73,6 +101,18 @@ module Carb::Flow
         match.success { |_| true }
         match.failure { |_| false }
       end
+    end
+
+    def get_step(action)
+      steps[action.step_name]
+    end
+
+    def get_service(action)
+      send(action.service_name)
+    end
+
+    def get_args(action)
+      action.args
     end
   end
 end
