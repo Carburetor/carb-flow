@@ -1,3 +1,4 @@
+require "wisper"
 require "carb/flow"
 require "carb/steps"
 require "carb/service"
@@ -11,6 +12,8 @@ module Carb::Flow
   # TODO: Refactor code to use `carb` and not `carb-core` when requiring
   class Transaction
     include ::Carb::Service
+    include ::Wisper::Publisher
+
     Action = Struct.new(:name, :service, :args)
 
     protected
