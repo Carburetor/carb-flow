@@ -4,6 +4,9 @@ require "carb/steps"
 require "carb/service"
 require "carb/monads"
 require "carb/monads/success_matcher"
+require "carb/flow/transaction/action"
+require "carb/flow/transaction/action_list"
+require "carb/flow/transaction/executable_action"
 
 module Carb::Flow
   # TODO: Add wisper to Carb::Service? (or stick to Steps? Or transaction only?)
@@ -33,7 +36,8 @@ module Carb::Flow
 
       args_monad = ::Carb::Monads.monadize(args)
 
-      execute_actions(args_monad)
+      broadcast(:start)
+      execute_actions(args_monad).tap { broadcast(:finish) }
     end
 
     def method_missing(method_name, *args, &block)
@@ -74,26 +78,23 @@ module Carb::Flow
     end
 
     def execute_action(action, result_monad)
-      broadcast_step_start(action)
+      broadcast_step_start(action, result_monad.value)
 
-      result     = invoke_step(action)
+      executable = build_executable(action)
+      result     = executable.(**result_monad.value)
       is_failure = failure?(result)
 
-      broadcast_step_end(action)
+      broadcast_step_finish(action, result)
 
       return result, is_failure
     end
 
-    def invoke_step(action)
-      step      = get_step(action)
-      service   = get_service(action)
-      step_args = get_args(action)
-
-      step.(service: service, args: result_monad.value, **step_args)
+    def broadcast_step_start(action, args)
+      broadcast(:step_start, action, args)
     end
 
-    def broadcast_step_start(action)
-      # broadcast(:step_start, action.step_name, action.)
+    def broadcast_step_finish(action, result)
+      broadcast(:step_finish, action, result)
     end
 
     def failure?(result_monad)
@@ -103,19 +104,12 @@ module Carb::Flow
       end
     end
 
-    def get_step(action)
-      steps[action.step_name]
-    end
-
-    def get_service(action)
-      send(action.service_name)
-    end
-
-    def get_args(action)
-      action.args
+    def build_executable(action)
+      ExecutableAction.new(
+        steps[action.step_name],
+        send(action.service_name),
+        action.args
+      )
     end
   end
 end
-
-require "carb/flow/transaction/action"
-require "carb/flow/transaction/action_list"
