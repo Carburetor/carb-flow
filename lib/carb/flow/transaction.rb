@@ -36,16 +36,15 @@ module Carb::Flow
 
       args_monad = ::Carb::Monads.monadize(args)
 
-      broadcast(:start)
-      execute_actions(args_monad).tap { broadcast(:finish) }
+      broadcast(:start, self)
+      execute_actions(args_monad)
     end
 
     def method_missing(method_name, *args, &block)
-      if step_names.include?(method_name.to_sym)
-        append_action(method_name.to_sym, *args)
-      else
-        super
-      end
+      mth = method_name.to_sym
+      return append_action(mth, *args) if step_names.include?(mth)
+
+      super
     end
 
     def respond_to_missing?(method_name, include_private = false)
@@ -65,7 +64,8 @@ module Carb::Flow
       actions.each do |action, is_last|
         result_monad, is_failure = execute_action(action, result_monad)
 
-        return result_monad if is_last || is_failure
+        broadcast_finish(is_failure) if is_last || is_failure
+        return result_monad          if is_last || is_failure
       end
     end
 
@@ -78,23 +78,41 @@ module Carb::Flow
     end
 
     def execute_action(action, result_monad)
-      broadcast_step_start(action, result_monad.value)
+      broadcast(:step_start, action, result_monad.value)
 
-      executable = build_executable(action)
-      result     = executable.(**result_monad.value)
-      is_failure = failure?(result)
+      executable         = build_executable(action)
+      result, is_failure = run_executable(executable, result_monad)
 
-      broadcast_step_finish(action, result)
+      broadcast_step_finish(action, result, is_failure)
 
       return result, is_failure
     end
 
-    def broadcast_step_start(action, args)
-      broadcast(:step_start, action, args)
+    def build_executable(action)
+      step    = steps[action.step_name]
+      service = send(action.service_name)
+      args    = action.args
+
+      ExecutableAction.new(step, service, args)
     end
 
-    def broadcast_step_finish(action, result)
-      broadcast(:step_finish, action, result)
+    def run_executable(executable, result_monad)
+      result     = executable.(**result_monad.value)
+      is_failure = failure?(result)
+
+      return result, is_failure
+    end
+
+    def broadcast_finish(is_failure)
+      return broadcast(:failure, self) if is_failure
+
+      broadcast(:success, self)
+    end
+
+    def broadcast_step_finish(action, result, is_failure)
+      broadcast(:step_failure, action, result) if is_failure
+
+      broadcast(:step_success, action, result)
     end
 
     def failure?(result_monad)
@@ -102,14 +120,6 @@ module Carb::Flow
         match.success { |_| true }
         match.failure { |_| false }
       end
-    end
-
-    def build_executable(action)
-      ExecutableAction.new(
-        steps[action.step_name],
-        send(action.service_name),
-        action.args
-      )
     end
   end
 end
