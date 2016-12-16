@@ -1,5 +1,5 @@
 require "spec_helper"
-require "carb-service"
+require "carb/service"
 require "carb/steps/step"
 require "carb/monads"
 require "carb/rspec/service"
