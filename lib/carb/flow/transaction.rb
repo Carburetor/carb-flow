@@ -4,18 +4,16 @@ require "carb/steps"
 require "carb/service"
 require "carb/monads"
 require "carb/monads/success_matcher"
-require "carb/flow/transaction/action"
-require "carb/flow/transaction/action_list"
-require "carb/flow/transaction/executable_action"
 
 module Carb::Flow
-  # TODO: Add wisper to Carb::Service? (or stick to Steps? Or transaction only?)
-  #   probably to steps is the best idea (leaves the services uncluttered), but
-  #   discuss with Dave
   # TODO: Refactor code to use `carb` and not `carb-core` when requiring
   class Transaction
     include ::Carb::Service
     include ::Wisper::Publisher
+
+    Error      = Class.new(::StandardError)
+    EmptyError = Class.new(Error)
+    EMPTY_MSG  = "Transaction must have at least one step".freeze
 
     protected
 
@@ -33,6 +31,7 @@ module Carb::Flow
 
     def call(**args)
       setup(**args)
+      raise EmptyError, EMPTY_MSG if actions.empty?
 
       args_monad = ::Carb::Monads.monadize(args)
 
@@ -116,6 +115,10 @@ module Carb::Flow
     end
 
     def failure?(result_monad)
+      !success?(result_monad)
+    end
+
+    def success?(result_monad)
       ::Carb::Monads::SuccessMatcher.(result_monad) do |match|
         match.success { |_| true }
         match.failure { |_| false }
@@ -123,3 +126,7 @@ module Carb::Flow
     end
   end
 end
+
+require "carb/flow/transaction/action"
+require "carb/flow/transaction/action_list"
+require "carb/flow/transaction/executable_action"

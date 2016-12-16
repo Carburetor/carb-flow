@@ -34,6 +34,10 @@ module Carb::Flow
       end
     end
 
+    def empty?
+      list.empty?
+    end
+
     private
 
     def extract_list_or_empty(list)

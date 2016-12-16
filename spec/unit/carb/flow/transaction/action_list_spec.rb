@@ -30,6 +30,16 @@ describe Carb::Flow::Transaction::ActionList do
     expect(@action_list.to_a).to eq [@action]
   end
 
+  it "is empty when no action added" do
+    expect(@action_list).to be_empty
+  end
+
+  it "is not empty when action added" do
+    @action_list << @action
+
+    expect(@action_list).not_to be_empty
+  end
+
   it "loops over each action" do
     looped_times = 0
     @action_list << @action
