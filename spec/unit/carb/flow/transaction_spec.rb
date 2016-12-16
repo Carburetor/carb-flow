@@ -92,6 +92,14 @@ describe Carb::Flow::Transaction do
     expect(result).to eq Carb::Monads.monadize({ bar: "baz" })
   end
 
+  it "can use lambda as service" do
+    @transaction.step ->(**args) { puts "hello" }
+    result = nil
+
+    expect{result = @transaction.()}.to output(/hello/).to_stdout
+    expect(result).to eq Carb::Monads.monadize(nil)
+  end
+
   it "calls #setup" do
     allow(@transaction).to receive(:setup).and_call_original
     @transaction.step :do_nothing

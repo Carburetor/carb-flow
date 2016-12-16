@@ -2,8 +2,8 @@ require "wisper"
 require "carb/flow"
 require "carb/steps"
 require "carb/service"
+require "carb/service/lambda"
 require "carb/monads"
-require "carb/monads/success_matcher"
 
 module Carb::Flow
   # TODO: Refactor code to use `carb` and not `carb-core` when requiring
@@ -31,12 +31,11 @@ module Carb::Flow
 
     def call(**args)
       setup(**args)
+
       raise EmptyError, EMPTY_MSG if actions.empty?
 
       args_monad = ::Carb::Monads.monadize(args)
-
-      broadcast(:start, self)
-      execute_actions(args_monad)
+      perform(args_monad)
     end
 
     def method_missing(method_name, *args, &block)
@@ -59,17 +58,24 @@ module Carb::Flow
 
     private
 
+    def perform(args_monad)
+      broadcast(:start, self)
+      result_monad, is_failure = execute_actions(args_monad)
+      broadcast_finish(is_failure)
+
+      result_monad
+    end
+
     def execute_actions(result_monad)
       actions.each do |action, is_last|
         result_monad, is_failure = execute_action(action, result_monad)
 
-        broadcast_finish(is_failure) if is_last || is_failure
-        return result_monad          if is_last || is_failure
+        return result_monad, is_failure if is_last || is_failure
       end
     end
 
-    def append_action(step_name, service_name, **args)
-      self.actions << Action.new(step_name, service_name, args)
+    def append_action(step_name, name_or_lambda, **args)
+      self.actions << Action.new(step_name, name_or_lambda, args)
     end
 
     def step_names
@@ -89,7 +95,7 @@ module Carb::Flow
 
     def build_executable(action)
       step    = steps[action.step_name]
-      service = send(action.service_name)
+      service = get_service(action)
       args    = action.args
 
       ExecutableAction.new(step, service, args)
@@ -100,6 +106,12 @@ module Carb::Flow
       is_failure = failure?(result)
 
       return result, is_failure
+    end
+
+    def get_service(action)
+      return send(action.name_or_lambda) unless action.lambda?
+
+      ::Carb::Service::Lambda.new(action.name_or_lambda)
     end
 
     def broadcast_finish(is_failure)
@@ -115,14 +127,7 @@ module Carb::Flow
     end
 
     def failure?(result_monad)
-      !success?(result_monad)
-    end
-
-    def success?(result_monad)
-      ::Carb::Monads::SuccessMatcher.(result_monad) do |match|
-        match.success { |_| true }
-        match.failure { |_| false }
-      end
+      !::Carb::Monads.success_monad?(result_monad)
     end
   end
 end
