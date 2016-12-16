@@ -18,27 +18,31 @@ describe Carb::Flow::Transaction do
       puts "bar #{ bar }"
       Carb::Monads.monadize({ blah: 123 })
     end
+    @just_return = ->(**args) { Carb::Monads.monadize(args) }
 
     @transaction_class = Class.new(Carb::Flow::Transaction) do
       attr_reader :say_foo
       attr_reader :say_bar
       attr_reader :do_nothing
       attr_reader :do_fail
+      attr_reader :just_return
 
-      def initialize(say_foo:, say_bar:, do_nothing:, do_fail:)
+      def initialize(say_foo:, say_bar:, do_nothing:, do_fail:, just_return:)
         super()
-        @say_foo    = say_foo
-        @say_bar    = say_bar
-        @do_nothing = do_nothing
-        @do_fail    = do_fail
+        @say_foo     = say_foo
+        @say_bar     = say_bar
+        @do_nothing  = do_nothing
+        @do_fail     = do_fail
+        @just_return = just_return
       end
     end
 
     @transaction = @transaction_class.new(
-      say_foo:    @say_foo,
-      say_bar:    @say_bar,
-      do_nothing: @do_nothing,
-      do_fail:    @do_fail
+      say_foo:     @say_foo,
+      say_bar:     @say_bar,
+      do_nothing:  @do_nothing,
+      do_fail:     @do_fail,
+      just_return: @just_return
     )
   end
 
@@ -113,5 +117,23 @@ describe Carb::Flow::Transaction do
     @transaction.step :do_fail
 
     expect{@transaction.()}.to broadcast(:failure, @transaction)
+  end
+
+  it "broadcasts step_start" do
+    @transaction.step :just_return
+
+    expect{@transaction.(foo: 123)}.to broadcast(:step_start)
+  end
+
+  it "broadcasts step_success" do
+    @transaction.step :just_return
+
+    expect{@transaction.(foo: 123)}.to broadcast(:step_success)
+  end
+
+  it "broadcasts step_success" do
+    @transaction.step :do_fail
+
+    expect{@transaction.()}.to broadcast(:step_failure)
   end
 end
