@@ -1,5 +1,5 @@
 require "wisper"
-require "carb/flow"
+require "carb"
 require "carb/steps"
 require "carb/service"
 require "carb/service/lambda"

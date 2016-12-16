@@ -1,4 +1,4 @@
-require "carb-core"
+require "carb"
 
 module Carb::Steps
   # Basic interface which must be adhered to if you are implementing new steps

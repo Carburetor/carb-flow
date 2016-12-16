@@ -1,4 +1,4 @@
-require "carb/flow"
+require "carb"
 require "carb/flow/transaction"
 require "carb/service"
 

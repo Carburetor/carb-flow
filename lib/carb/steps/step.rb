@@ -1,4 +1,4 @@
-require "carb-core"
+require "carb"
 require "carb/service"
 require "carb/steps/base"
 
