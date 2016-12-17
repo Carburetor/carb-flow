@@ -1,11 +1,14 @@
 require "carb"
 require "carb/flow/transaction"
+require "carb/service"
 
 module Carb::Flow
-  # Holds data necessary to discover step, service and args to be executed
-  Transaction::Action = Struct.new(:step_name, :name_or_lambda, :args) do
-    def lambda?
-      name_or_lambda.is_a?(::Proc)
+  # Provides functionality to execute step for given service
+  Transaction::Action = Struct.new(:step, :service, :step_args) do
+    include ::Carb::Service
+
+    def call(**args)
+      step.(service: service, args: args, **step_args)
     end
   end
 end

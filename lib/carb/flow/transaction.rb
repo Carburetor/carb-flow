@@ -6,7 +6,6 @@ require "carb/service/lambda"
 require "carb/monads"
 
 module Carb::Flow
-  # TODO: Refactor code to use `carb` and not `carb-core` when requiring
   class Transaction
     include ::Carb::Service
     include ::Wisper::Publisher
@@ -74,8 +73,11 @@ module Carb::Flow
       end
     end
 
-    def append_action(step_name, name_or_lambda, **args)
-      self.actions << Action.new(step_name, name_or_lambda, args)
+    def append_action(step_name, name_or_service_or_lambda, **args)
+      step    = steps[step_name]
+      service = get_service(name_or_service_or_lambda)
+
+      self.actions << Action.new(step, service, args)
     end
 
     def step_names
@@ -83,35 +85,24 @@ module Carb::Flow
     end
 
     def execute_action(action, result_monad)
-      broadcast(:step_start, action, result_monad.value)
+      broadcast(:step_start, action, result_monad)
 
-      executable         = build_executable(action)
-      result, is_failure = run_executable(executable, result_monad)
+      result     = action.(**result_monad.value)
+      is_failure = failure?(result)
 
       broadcast_step_finish(action, result, is_failure)
 
       return result, is_failure
     end
 
-    def build_executable(action)
-      step    = steps[action.step_name]
-      service = get_service(action)
-      args    = action.args
+    # @param nsl [::Symbol, ::Carb::Service, ::Proc]
+    # @return [::Carb::Service]
+    def get_service(nsl)
+      return nsl                              if nsl.is_a?(::Carb::Service)
+      return send(nsl)                        if nsl.is_a?(::Symbol)
+      return ::Carb::Service::Lambda.new(nsl) if nsl.is_a?(::Proc)
 
-      ExecutableAction.new(step, service, args)
-    end
-
-    def run_executable(executable, result_monad)
-      result     = executable.(**result_monad.value)
-      is_failure = failure?(result)
-
-      return result, is_failure
-    end
-
-    def get_service(action)
-      return send(action.name_or_lambda) unless action.lambda?
-
-      ::Carb::Service::Lambda.new(action.name_or_lambda)
+      raise ArgumentError, "step must be performed on Symbol, Lambda or Service"
     end
 
     def broadcast_finish(is_failure)
@@ -134,4 +125,3 @@ end
 
 require "carb/flow/transaction/action"
 require "carb/flow/transaction/action_list"
-require "carb/flow/transaction/executable_action"

@@ -27,7 +27,7 @@ describe Carb::Flow::Pipe do
 
   it_behaves_like "Carb::Service" do
     before do
-      @service = @transaction
+      @service      = @transaction
       @success_call = -> { @transaction.(foo: "foome") }
     end
   end

@@ -1,6 +1,7 @@
 require "spec_helper"
 require "wisper/rspec/matchers"
 require "carb/rspec/service"
+require "carb/service/lambda"
 require "carb/flow/transaction"
 
 describe Carb::Flow::Transaction do
@@ -98,6 +99,15 @@ describe Carb::Flow::Transaction do
 
     expect{result = @transaction.()}.to output(/hello/).to_stdout
     expect(result).to eq Carb::Monads.monadize(nil)
+  end
+
+  it "can use service as argument for step" do
+    service = ::Carb::Service::Lambda.new(->(**args) { args })
+    @transaction.step service
+
+    result = @transaction.(foo: "bar")
+
+    expect(result).to eq Carb::Monads.monadize(foo: "bar")
   end
 
   it "calls #setup" do

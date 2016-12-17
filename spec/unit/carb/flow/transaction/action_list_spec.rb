@@ -1,10 +1,14 @@
 require "spec_helper"
+require "carb/steps/step"
+require "carb/service/lambda"
 require "carb/flow/transaction/action"
 require "carb/flow/transaction/action_list"
 
 describe Carb::Flow::Transaction::ActionList do
   before do
-    @action      = Carb::Flow::Transaction::Action.new(:foo, :bar, [123])
+    @step        = Carb::Steps::Step.new
+    @service     = Carb::Service::Lambda.new(->(**args) { args })
+    @action      = Carb::Flow::Transaction::Action.new(@step, @service, {})
     @action_list = Carb::Flow::Transaction::ActionList.new
   end
 
@@ -50,7 +54,7 @@ describe Carb::Flow::Transaction::ActionList do
   end
 
   it "yields is_last true only on last action" do
-    action2      = Carb::Flow::Transaction::Action.new(:baz, :blah, [456])
+    action2      = Carb::Flow::Transaction::Action.new(@step, @service, {a: 1})
     looped_times = 0
     @action_list << action2
     @action_list << @action
