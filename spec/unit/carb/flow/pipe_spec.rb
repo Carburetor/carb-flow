@@ -36,6 +36,6 @@ describe Carb::Flow::Pipe do
     result = nil
 
     expect{result = @transaction.(foo: "foome")}.to output.to_stdout
-    expect(result.value).to eq({ blah: 123 })
+    expect(result.value).to eq Carb::Monads.monadize({ bar: "baz" })
   end
 end
