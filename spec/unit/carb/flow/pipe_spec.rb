@@ -1,41 +1,33 @@
 require "spec_helper"
 require "carb/rspec/service"
 require "carb/flow/pipe"
+require "carb/monads"
 
 describe Carb::Flow::Pipe do
   include Carb::RSpec::Service
 
   before do
-    @say_foo = ->(foo:) do
-      puts "foo #{ foo }"
-      Carb::Monads.monadize({ bar: "baz" })
-    end
-    @say_bar = ->(bar:) do
-      puts "bar #{ bar }"
-      Carb::Monads.monadize({ blah: 123 })
-    end
-
-    say_foo = @say_foo
-    say_bar = @say_bar
-    lol = "asd"
-
-    @transaction = Carb::Flow::Pipe.new do
-      puts lol
-      step say_foo
-    end
+    @do_nothing = ->(**args) { ::Carb::Monads.monadize(args) }
   end
 
   it_behaves_like "Carb::Service" do
     before do
-      @service      = @transaction
-      @success_call = -> { @transaction.(foo: "foome") }
+      do_nothing = @do_nothing
+      @service = Carb::Flow::Pipe.new do
+        step do_nothing
+      end
+      @success_call = -> { @service.(foo: "foome") }
     end
   end
 
-  it "defines steps" do
-    result = nil
+  it "defines steps using passed block" do
+    do_nothing  = @do_nothing
+    transaction = Carb::Flow::Pipe.new do
+      step do_nothing
+    end
 
-    expect{result = @transaction.(foo: "foome")}.to output.to_stdout
-    expect(result.value).to eq Carb::Monads.monadize({ bar: "baz" })
+    result = transaction.(foo: "foome")
+
+    expect(result).to eq Carb::Monads.monadize({ foo: "foome" })
   end
 end
