@@ -1,13 +1,13 @@
 # COMPOSE
 
-Campaign::CreateWithContacts = Carb::Compose[
+Campaign::CreateWithContacts = Carb::Pipe[
   Service1.new,
   Service2.new,
   Service3.new
 ]
 
-composed = Campaign::CreateWithContacts.new
-composed.("whatever")
+piped = Campaign::CreateWithContacts.new
+piped.("whatever")
 
 # PIPE
 Campaign::CreateWithContacts = Carb::Duct(steps: steps) do

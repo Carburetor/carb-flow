@@ -1,10 +1,10 @@
 require "spec_helper"
 require "carb/rspec/service"
-require "carb/flow/compose"
+require "carb/flow/pipe"
 require "carb/monads"
 require "carb/service/lambda"
 
-describe Carb::Flow::Compose do
+describe Carb::Flow::Pipe do
   include Carb::RSpec::Service
 
   before do
@@ -15,13 +15,13 @@ describe Carb::Flow::Compose do
   it_behaves_like "Carb::Service" do
     before do
       do_nothing    = @do_nothing
-      @service      = Carb::Flow::Compose.new(do_nothing, do_nothing)
+      @service      = Carb::Flow::Pipe.new(do_nothing, do_nothing)
       @success_call = -> { @service.(foo: "foome") }
     end
   end
 
   it "defines steps using list of services and lambdas" do
-    pipeline = Carb::Flow::Compose.new(@do_nothing, @service_nothing)
+    pipeline = Carb::Flow::Pipe.new(@do_nothing, @service_nothing)
     allow(@do_nothing).to receive(:call).and_call_original
 
     result = pipeline.(foo: "foome")

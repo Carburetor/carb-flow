@@ -4,7 +4,7 @@ require "carb/flow/duct"
 module Carb::Flow
   # Allows very easy and straightforward definition of pipeline using
   # {::Carb::Flow::Steps::Step} only
-  class Compose < Pipeline
+  class Pipe < Pipeline
     private
 
     attr_reader :services_or_lambdas
