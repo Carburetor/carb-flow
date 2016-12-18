@@ -1,30 +1,33 @@
 require "carb"
-require "carb/steps"
-require "carb/flow/transaction"
-require "carb/flow/transaction/action_list"
+require "carb/flow/pipe"
 
-# TODO: Completely write Compose file, this implementation is copy-pasted from
-# pipe
 module Carb::Flow
+  # Allows very easy and straightforward definition of transaction using
+  # {::Carb::Flow::Steps::Step} only
   class Compose < Transaction
     private
 
-    attr_reader :block
+    attr_reader :services_or_lambdas
 
     public
 
-    def initialize(steps: ::Carb::Steps::All, actions: ActionList.new, &block)
-      raise ArgumentError, "Step definition required" if block.nil?
-
+    # @param services_or_lambdas [Array] array of mixed {::Proc} and
+    #   {::Carb::Service}
+    def initialize(
+      *services_or_lambdas,
+      steps:   ::Carb::Steps::All,
+      actions: ActionList.new
+    )
       super(steps: steps, actions: actions)
-
-      @block = block
+      @services_or_lambdas = services_or_lambdas
     end
 
     protected
 
     def setup(**args)
-      instance_eval(&block)
+      services_or_lambdas.each do |service_or_lambda|
+        step(service_or_lambda)
+      end
     end
   end
 end
