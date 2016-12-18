@@ -8,7 +8,7 @@ steps = STEPS_STORED_SOMEWHERE.merge({
 })
 
 # By default steps = STEPS_STORED_SOMEWHERE
-Campaign::CreateWithContacts = Carb::Pipe(steps: steps) do
+Campaign::CreateWithContacts = Carb::Duct(steps: steps) do
   step :create
   tee  :append_contacts
   # Guideline should be that this lambda is at most one line long
@@ -32,7 +32,7 @@ Campaign::CreateWithContacts.(Campaign.find(123))
 #   listener before the `do end` block
 listener = container["campaign.create_with_contacts.listener"]
 
-Campaign::CreateWithContacts = Carb::Pipe(steps: steps) do
+Campaign::CreateWithContacts = Carb::Duct(steps: steps) do
   step :create
   tee(:append_contacts).subscribe(:success, listener)
   step(->(campaign) { 123 }).subscribe(:success, listener)

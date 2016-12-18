@@ -6,13 +6,13 @@ require "carb/service/lambda"
 require "carb/monads"
 
 module Carb::Flow
-  class Transaction
+  class Pipeline
     include ::Carb::Service
     include ::Wisper::Publisher
 
     Error      = Class.new(::StandardError)
     EmptyError = Class.new(Error)
-    EMPTY_MSG  = "Transaction must have at least one step".freeze
+    EMPTY_MSG  = "Pipeline must have at least one step".freeze
 
     protected
 
@@ -123,5 +123,5 @@ module Carb::Flow
   end
 end
 
-require "carb/flow/transaction/action"
-require "carb/flow/transaction/action_list"
+require "carb/flow/pipeline/action"
+require "carb/flow/pipeline/action_list"

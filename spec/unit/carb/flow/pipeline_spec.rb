@@ -2,9 +2,9 @@ require "spec_helper"
 require "wisper/rspec/matchers"
 require "carb/rspec/service"
 require "carb/service/lambda"
-require "carb/flow/transaction"
+require "carb/flow/pipeline"
 
-describe Carb::Flow::Transaction do
+describe Carb::Flow::Pipeline do
   include Carb::RSpec::Service
   include Wisper::RSpec::BroadcastMatcher
 
@@ -21,7 +21,7 @@ describe Carb::Flow::Transaction do
     end
     @just_return = ->(**args) { Carb::Monads.monadize(args) }
 
-    @transaction_class = Class.new(Carb::Flow::Transaction) do
+    @pipeline_class = Class.new(Carb::Flow::Pipeline) do
       attr_reader :say_foo
       attr_reader :say_bar
       attr_reader :do_nothing
@@ -38,7 +38,7 @@ describe Carb::Flow::Transaction do
       end
     end
 
-    @transaction = @transaction_class.new(
+    @pipeline = @pipeline_class.new(
       say_foo:     @say_foo,
       say_bar:     @say_bar,
       do_nothing:  @do_nothing,
@@ -49,109 +49,109 @@ describe Carb::Flow::Transaction do
 
   it_behaves_like "Carb::Service" do
     before do
-      @transaction.step :do_nothing
-      @service = @transaction
-      @success_call = -> { @transaction.() }
+      @pipeline.step :do_nothing
+      @service = @pipeline
+      @success_call = -> { @pipeline.() }
     end
   end
 
   it "raises if no steps provided" do
-    expect{@transaction.()}.to raise_error Carb::Flow::Transaction::EmptyError
+    expect{@pipeline.()}.to raise_error Carb::Flow::Pipeline::EmptyError
   end
 
   it "runs both steps" do
-    @transaction.step :say_foo
-    @transaction.step :say_bar
+    @pipeline.step :say_foo
+    @pipeline.step :say_bar
     allow(@say_foo).to receive(:call)
       .and_return(Carb::Monads.monadize({ bar: "barme" }))
     allow(@say_bar).to receive(:call)
       .and_return(Carb::Monads.monadize({ blah: 123 }))
 
-    @transaction.(foo: "foome")
+    @pipeline.(foo: "foome")
 
     expect(@say_foo).to have_received(:call).with(foo: "foome")
     expect(@say_bar).to have_received(:call).with(bar: "barme")
   end
 
   it "returns last step result" do
-    @transaction.step :say_foo
-    @transaction.step :say_bar
+    @pipeline.step :say_foo
+    @pipeline.step :say_bar
     result = nil
 
-    expect{result = @transaction.(foo: "foome")}.to output.to_stdout
+    expect{result = @pipeline.(foo: "foome")}.to output.to_stdout
     expect(result).to eq Carb::Monads.monadize({ blah: 123 })
   end
 
   it "can use tee step" do
     allow(@do_nothing).to receive(:call).and_call_original
-    @transaction.tee  :do_nothing
-    @transaction.step :say_foo
+    @pipeline.tee  :do_nothing
+    @pipeline.step :say_foo
     result = nil
 
-    expect{result = @transaction.(foo: "foome")}.to output.to_stdout
+    expect{result = @pipeline.(foo: "foome")}.to output.to_stdout
     expect(@do_nothing).to have_received(:call)
     expect(result).to eq Carb::Monads.monadize({ bar: "baz" })
   end
 
   it "can use lambda as service" do
-    @transaction.step ->(**args) { puts "hello" }
+    @pipeline.step ->(**args) { puts "hello" }
     result = nil
 
-    expect{result = @transaction.()}.to output(/hello/).to_stdout
+    expect{result = @pipeline.()}.to output(/hello/).to_stdout
     expect(result).to eq Carb::Monads.monadize(nil)
   end
 
   it "can use service as argument for step" do
     service = ::Carb::Service::Lambda.new(->(**args) { args })
-    @transaction.step service
+    @pipeline.step service
 
-    result = @transaction.(foo: "bar")
+    result = @pipeline.(foo: "bar")
 
     expect(result).to eq Carb::Monads.monadize(foo: "bar")
   end
 
   it "calls #setup" do
-    allow(@transaction).to receive(:setup).and_call_original
-    @transaction.step :do_nothing
+    allow(@pipeline).to receive(:setup).and_call_original
+    @pipeline.step :do_nothing
 
-    @transaction.()
+    @pipeline.()
 
-    expect(@transaction).to have_received(:setup)
+    expect(@pipeline).to have_received(:setup)
   end
 
   it "broadcasts start" do
-    @transaction.step :do_nothing
+    @pipeline.step :do_nothing
 
-    expect{@transaction.()}.to broadcast(:start, @transaction)
+    expect{@pipeline.()}.to broadcast(:start, @pipeline)
   end
 
   it "broadcasts success" do
-    @transaction.step :do_nothing
+    @pipeline.step :do_nothing
 
-    expect{@transaction.()}.to broadcast(:success, @transaction)
+    expect{@pipeline.()}.to broadcast(:success, @pipeline)
   end
 
   it "broadcasts failure" do
-    @transaction.step :do_fail
+    @pipeline.step :do_fail
 
-    expect{@transaction.()}.to broadcast(:failure, @transaction)
+    expect{@pipeline.()}.to broadcast(:failure, @pipeline)
   end
 
   it "broadcasts step_start" do
-    @transaction.step :just_return
+    @pipeline.step :just_return
 
-    expect{@transaction.(foo: 123)}.to broadcast(:step_start)
+    expect{@pipeline.(foo: 123)}.to broadcast(:step_start)
   end
 
   it "broadcasts step_success" do
-    @transaction.step :just_return
+    @pipeline.step :just_return
 
-    expect{@transaction.(foo: 123)}.to broadcast(:step_success)
+    expect{@pipeline.(foo: 123)}.to broadcast(:step_success)
   end
 
   it "broadcasts step_success" do
-    @transaction.step :do_fail
+    @pipeline.step :do_fail
 
-    expect{@transaction.()}.to broadcast(:step_failure)
+    expect{@pipeline.()}.to broadcast(:step_failure)
   end
 end

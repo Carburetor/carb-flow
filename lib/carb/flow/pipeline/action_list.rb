@@ -1,9 +1,9 @@
 require "carb"
-require "carb/flow/transaction"
-require "carb/flow/transaction/action"
+require "carb/flow/pipeline"
+require "carb/flow/pipeline/action"
 
 module Carb::Flow
-  class Transaction::ActionList
+  class Pipeline::ActionList
     private
 
     attr_reader :list
@@ -15,7 +15,7 @@ module Carb::Flow
     end
 
     def <<(action)
-      unless action.is_a?(::Carb::Flow::Transaction::Action)
+      unless action.is_a?(::Carb::Flow::Pipeline::Action)
         raise TypeError, "action must be an Action"
       end
 

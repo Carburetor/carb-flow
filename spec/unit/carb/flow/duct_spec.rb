@@ -1,9 +1,9 @@
 require "spec_helper"
 require "carb/rspec/service"
-require "carb/flow/pipe"
+require "carb/flow/duct"
 require "carb/monads"
 
-describe Carb::Flow::Pipe do
+describe Carb::Flow::Duct do
   include Carb::RSpec::Service
 
   before do
@@ -13,7 +13,7 @@ describe Carb::Flow::Pipe do
   it_behaves_like "Carb::Service" do
     before do
       do_nothing = @do_nothing
-      @service = Carb::Flow::Pipe.new do
+      @service = Carb::Flow::Duct.new do
         step do_nothing
       end
       @success_call = -> { @service.(foo: "foome") }
@@ -22,11 +22,11 @@ describe Carb::Flow::Pipe do
 
   it "defines steps using passed block" do
     do_nothing  = @do_nothing
-    transaction = Carb::Flow::Pipe.new do
+    pipeline = Carb::Flow::Duct.new do
       step do_nothing
     end
 
-    result = transaction.(foo: "foome")
+    result = pipeline.(foo: "foome")
 
     expect(result).to eq Carb::Monads.monadize({ foo: "foome" })
   end

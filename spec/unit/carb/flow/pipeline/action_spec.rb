@@ -1,16 +1,16 @@
 require "spec_helper"
-require "carb/flow/transaction/action"
+require "carb/flow/pipeline/action"
 require "carb/rspec/service"
 require "carb/monads"
 
-describe Carb::Flow::Transaction::Action do
+describe Carb::Flow::Pipeline::Action do
   include Carb::RSpec::Service
 
   before do
     @step       = ->(service:, args:, **step_args) { Carb::Monads.monadize(1) }
     @service    = -> {}
     @step_args  = { foo: :bar }
-    @executable = Carb::Flow::Transaction::Action.new(
+    @executable = Carb::Flow::Pipeline::Action.new(
       @step,
       @service,
       @step_args
@@ -25,7 +25,7 @@ describe Carb::Flow::Transaction::Action do
   end
 
   it "can be initialized with 3 args" do
-    Carb::Flow::Transaction::Action.new(:foo, :bar, [123])
+    Carb::Flow::Pipeline::Action.new(:foo, :bar, [123])
   end
 
   it "has step" do

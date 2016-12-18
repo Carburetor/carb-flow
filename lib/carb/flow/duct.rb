@@ -1,10 +1,10 @@
 require "carb"
 require "carb/steps"
-require "carb/flow/transaction"
-require "carb/flow/transaction/action_list"
+require "carb/flow/pipeline"
+require "carb/flow/pipeline/action_list"
 
 module Carb::Flow
-  class Pipe < Transaction
+  class Duct < Pipeline
     private
 
     attr_reader :block

@@ -1,5 +1,5 @@
 class Campaign::CreateWithContacts
-  include Carb::Pipe
+  include Carb::Duct
   include Inject[
     "step.delayed_job", "step.tee",
     create:          "campaign.create",

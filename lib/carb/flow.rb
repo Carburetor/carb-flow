@@ -1,5 +1,5 @@
 require "carb/flow/version"
-require "carb/flow/transaction"
+require "carb/flow/pipeline"
 
 module Carb
   module Flow

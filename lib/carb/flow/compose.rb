@@ -1,10 +1,10 @@
 require "carb"
-require "carb/flow/pipe"
+require "carb/flow/duct"
 
 module Carb::Flow
-  # Allows very easy and straightforward definition of transaction using
+  # Allows very easy and straightforward definition of pipeline using
   # {::Carb::Flow::Steps::Step} only
-  class Compose < Transaction
+  class Compose < Pipeline
     private
 
     attr_reader :services_or_lambdas

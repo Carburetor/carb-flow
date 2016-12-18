@@ -10,7 +10,7 @@ composed = Campaign::CreateWithContacts.new
 composed.("whatever")
 
 # PIPE
-Campaign::CreateWithContacts = Carb::Pipe(steps: steps) do
+Campaign::CreateWithContacts = Carb::Duct(steps: steps) do
   step :create
   tee  :append_contacts
   step ->(campaign) { 123 }
@@ -21,22 +21,22 @@ end
 # Steps stored in `steps: ` are just used to replace the default, they can still
 # be injected
 
-pipe = Campaign::CreateWithContacts.new(steps: REPLACE_STEPS_DINAMICALLY)
-pipe.("whatever")
+duct = Campaign::CreateWithContacts.new(steps: REPLACE_STEPS_DINAMICALLY)
+duct.("whatever")
 
 # TRANSACTION
 class Campaign::CreateWithContacts
-  include Carb::Transaction
+  include Carb::Pipeline
   include Inject[queue_step: "custom_step.queue"]
 
-  # This initializer is an example of what is performed by Carb::Transaction.
+  # This initializer is an example of what is performed by Carb::Pipeline.
   # It won't be in the main class
   def initialize(step_adapters: BASE_STEP_ADAPTERS)
     @step_adapters = step_adapters
     prepare
   end
 
-  # Provide by Transaction, this actually won't be written and shouldn't be
+  # Provide by Pipeline, this actually won't be written and shouldn't be
   # touched
   def call(obj)
     # Any monad is fine, even a maybe, they all respond to `bind`
@@ -50,7 +50,7 @@ class Campaign::CreateWithContacts
   # Class must provide this method
   # This is to allow dynamic steps, if you really need to. This version is
   # for "maximum expansion". Subscription to steps can be performed like
-  # dry-transactions or step(:something).subscribe(obj)
+  # dry-pipelines or step(:something).subscribe(obj)
   def prepare
     step  :something
     queue :something_else
@@ -60,7 +60,7 @@ class Campaign::CreateWithContacts
 
   protected
 
-  # #step_adapters will be provided by Carb::Transaction and can be overloaded
+  # #step_adapters will be provided by Carb::Pipeline and can be overloaded
   # This method is run on initialization and will create instance methods for
   # each key in the hashmap
   def step_adapters
@@ -70,8 +70,8 @@ class Campaign::CreateWithContacts
   end
 end
 
-transaction = Campaign::CreateWithContacts.new
-transaction.("whatever")
+pipeline = Campaign::CreateWithContacts.new
+pipeline.("whatever")
 
 # SERVICE
 

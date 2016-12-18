@@ -21,10 +21,10 @@ describe Carb::Flow::Compose do
   end
 
   it "defines steps using list of services and lambdas" do
-    transaction = Carb::Flow::Compose.new(@do_nothing, @service_nothing)
+    pipeline = Carb::Flow::Compose.new(@do_nothing, @service_nothing)
     allow(@do_nothing).to receive(:call).and_call_original
 
-    result = transaction.(foo: "foome")
+    result = pipeline.(foo: "foome")
 
     expect(result).to eq Carb::Monads.monadize({ foo: "foome" })
     expect(@do_nothing).to have_received(:call).twice
