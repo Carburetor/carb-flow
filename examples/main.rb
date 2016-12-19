@@ -116,6 +116,21 @@ puts "result is #{ result.inspect }"
 # [#<struct Contact first_name="Jon", last_name="Snow", age=17, clan="Stark">, #<struct Contact first_name="Robb", last_name="Stark", age=17, clan="Stark">]
 # result is Right({:contacts=>[#<struct Contact first_name="Jon", last_name="Snow", age=17, clan="Stark">, #<struct Contact first_name="Robb", last_name="Stark", age=17, clan="Stark">]})
 
+# Pipe uses `step` for everything, so the result is Right(nil)
+pipe = Carb::Flow::Pipe.new(
+  Container[:extract_from_csv],
+  Container[:rows_to_contacts].curry(clan: "Stark"),
+  ->(contacts:) { puts contacts.inspect }
+)
+
+result = pipe.(path: "foopath")
+
+puts "result is #{ result.inspect }"
+
+# Reading from foopath
+# [#<struct Contact first_name="Jon", last_name="Snow", age=17, clan="Stark">, #<struct Contact first_name="Robb", last_name="Stark", age=17, clan="Stark">]
+# result is Right(nil)
+
 # Recommendations
 # Use `initialize` only to inject external dependencies, to make testing
 # easy. Don't use it for configuration
