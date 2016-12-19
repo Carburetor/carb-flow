@@ -3,6 +3,7 @@ require "carb-core"
 require "carb-inject"
 require "carb-service"
 require "carb-flow"
+require "pry-byebug"
 
 contacts = [
   ["Jon", "Snow", 17],
@@ -54,13 +55,13 @@ Container[:rows_to_contacts] = RowsToContacts.new
 
 # === USAGE ===
 
-pipe = Carb::Flow::Duct.new do
+duct = Carb::Flow::Duct.new do
   step Container[:extract_from_csv]
   step Container[:rows_to_contacts].curry(clan: "Stark")
   tee  ->(contacts:) { puts contacts.inspect }
 end
 
-result = pipe.(path: "foopath")
+result = duct.(path: "foopath")
 
 puts "result is #{ result.inspect }"
 
@@ -71,16 +72,38 @@ puts "result is #{ result.inspect }"
 
 # If instead of `tee` we use a simple step, the output is different!
 
-pipe = Carb::Flow::Duct.new do
+duct = Carb::Flow::Duct.new do
   step Container[:extract_from_csv]
   step Container[:rows_to_contacts].curry(clan: "Stark")
   step ->(contacts:) { puts contacts.inspect }
 end
 
-result = pipe.(path: "foopath")
+result = duct.(path: "foopath")
 
 puts "result is #{ result.inspect }"
 
 # Reading from foopath
 # [#<struct Contact first_name="Jon", last_name="Snow", age=17, clan="Stark">, #<struct Contact first_name="Robb", last_name="Stark", age=17, clan="Stark">]
 # result is Right(nil)
+
+# With a pipeline, syntax will look like the following:
+
+class ExtractAndPrintContacts < Carb::Flow::Pipeline
+  include Inject[:extract_from_csv, :rows_to_contacts]
+
+  def initialize(steps: ::Carb::Steps::All, actions: ActionList.new, **args)
+    super(steps: steps, actions: actions)
+    inject_dependencies!(**args)
+  end
+
+  def setup(**args)
+    step :extract_from_csv
+    step rows_to_contacts.curry(clan: "Stark")
+    tee  ->(contacts:) { puts contacts.inspect }
+  end
+end
+
+pipeline = ExtractAndPrintContacts.new
+result   = pipeline.(path: "foopath")
+
+puts "result is #{ result.inspect }"

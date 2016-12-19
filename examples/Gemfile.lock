@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: git@github.com:Carburetor/carb-inject.git
-  revision: 4431d049ee6493b5e82732ab91c3463865907972
+  revision: 3cedfaaa8b5695e5ca688fe61156917be5229e90
   tag: v0.2.0
   specs:
     carb-inject (0.2.0)
@@ -32,10 +32,21 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    byebug (9.0.6)
+    coderay (1.1.1)
     dry-equalizer (0.2.0)
     dry-matcher (0.6.0)
     dry-monads (0.2.1)
       dry-equalizer
+    method_source (0.8.2)
+    pry (0.10.4)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
+    pry-byebug (3.4.2)
+      byebug (~> 9.0)
+      pry (~> 0.10)
+    slop (3.6.0)
     wisper (1.6.1)
 
 PLATFORMS
@@ -46,6 +57,7 @@ DEPENDENCIES
   carb-flow!
   carb-inject!
   carb-service!
+  pry-byebug
 
 BUNDLED WITH
    1.13.6
