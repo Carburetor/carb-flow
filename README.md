@@ -64,7 +64,18 @@ end
 
 In addition, notice that transaction has
 [wisper](https://github.com/krisleech/wisper) support, which allows using the
-observer pattern for logging or similar functionality.
+observer pattern for logging or similar functionality. The broadcasted events
+are:
+
+- `:start`, with argument the `Pipeline` instance itself
+- `:success`, with argument the `Pipeline` instance itself
+- `:failure`, with argument the `Pipeline` instance itself
+- `:step_start`, with argument the `Carb::Flow::Pipeline::Action` and the
+  service return value
+- `:step_success`, with argument the `Carb::Flow::Pipeline::Action` and the
+  service return value
+- `:step_failure`, with argument the `Carb::Flow::Pipeline::Action` and the
+  service return value
 
 ### Pipe
 
