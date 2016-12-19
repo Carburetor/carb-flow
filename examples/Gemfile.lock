@@ -7,7 +7,7 @@ GIT
 
 GIT
   remote: git@github.com:Carburetor/carb-flow.git
-  revision: fb3219de29a1277532e15d9490ee4f0995f1d5e3
+  revision: 3f74f3ad3625a465733bb19eefb340db30a34b30
   tag: v0.1.0
   specs:
     carb-flow (0.1.0)

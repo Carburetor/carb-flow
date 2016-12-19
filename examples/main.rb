@@ -12,7 +12,10 @@ contacts = [
 
 Contact      = Struct.new(:first_name, :last_name, :age, :clan)
 Container    = {}
+# Provides automatically an initializer tht inject dependencies
 Inject       = Carb::Inject::Injector.new(Container)
+# Requires you to call `inject_dependencies!` inside the constructor, for
+# increased flexibility
 ManualInject = Carb::Inject::Injector.new(Container, auto_inject: false)
 
 class PrintText
@@ -92,10 +95,6 @@ puts "result is #{ result.inspect }"
 class ExtractAndPrintContacts < Carb::Flow::Pipeline
   include ManualInject[:extract_from_csv, :rows_to_contacts]
 
-  # def initialize(steps: ::Carb::Steps::All, actions: ActionList.new, **args)
-  #   super(steps: steps, actions: actions)
-  #   inject_dependencies!(**args)
-  # end
   def initialize(**args)
     super
     inject_dependencies!(**args)
@@ -108,7 +107,19 @@ class ExtractAndPrintContacts < Carb::Flow::Pipeline
   end
 end
 
-pipeline = ExtractAndPrintContacts.new(lol: 123)
+pipeline = ExtractAndPrintContacts.new(lol: 123) # :lol key goes ignored
 result   = pipeline.(path: "foopath")
 
 puts "result is #{ result.inspect }"
+
+# Reading from foopath
+# [#<struct Contact first_name="Jon", last_name="Snow", age=17, clan="Stark">, #<struct Contact first_name="Robb", last_name="Stark", age=17, clan="Stark">]
+# result is Right({:contacts=>[#<struct Contact first_name="Jon", last_name="Snow", age=17, clan="Stark">, #<struct Contact first_name="Robb", last_name="Stark", age=17, clan="Stark">]})
+
+# Recommendations
+# Use `initialize` only to inject external dependencies, to make testing
+# easy. Don't use it for configuration
+# Use `call` to configure the service itself. Use `curry` if you want to
+# pre-supply some arguments for some services
+# Keep every service with a single `call` method
+# 4 kind of high level objects: Monads, Collections, Data and Services
