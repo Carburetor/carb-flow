@@ -10,7 +10,7 @@ describe Carb::Flow::Pipeline do
 
   before do
     @do_nothing = ->(**args) { Carb::Monads.monadize(true) }
-    @do_fail    = ->(**args) { Carb::Monads.Left(false) }
+    @do_fail    = ->(**args) { Carb::Monads::Left(false) }
     @say_foo = ->(foo:) do
       puts "foo #{ foo }"
       Carb::Monads.monadize({ bar: "baz" })

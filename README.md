@@ -93,9 +93,9 @@ class ExtractName
 
   def call(name_holder:)
     name = name_holder.fetch(:contact).fetch(:name).to_s
-    Carb::Monads.Right(name: name)
+    Carb::Monads::Right(name: name)
   rescue KeyError => error
-    Carb::Monads.Left(error: error)
+    Carb::Monads::Left(error: error)
   end
 end
 
@@ -103,7 +103,7 @@ class CapitalizeName
   include Carb::Service
 
   def call(name:)
-    Carb::Monads.Right(text: name.to_s.upcase)
+    Carb::Monads::Right(text: name.to_s.upcase)
   end
 end
 
