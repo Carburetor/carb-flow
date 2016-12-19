@@ -23,9 +23,9 @@ module Carb::Flow
 
     # @param steps [Hash{ Symbol => ::Carb::Service }]
     # @param actions [ActionList] optional action list handler
-    def initialize(steps: ::Carb::Steps::All, actions: ActionList.new)
-      @steps   = steps
-      @actions = actions
+    def initialize(**dependencies)
+      @steps   = dependencies[:steps] || ::Carb::Steps::All
+      @actions = dependencies[:actions] || ActionList.new
     end
 
     def call(**args)

@@ -10,9 +10,10 @@ contacts = [
   ["Robb", "Stark", 17],
 ]
 
-Contact   = Struct.new(:first_name, :last_name, :age, :clan)
-Container = {}
-Inject    = Carb::Inject::Injector.new(Container)
+Contact      = Struct.new(:first_name, :last_name, :age, :clan)
+Container    = {}
+Inject       = Carb::Inject::Injector.new(Container)
+ManualInject = Carb::Inject::Injector.new(Container, auto_inject: false)
 
 class PrintText
   include Carb::Service
@@ -89,10 +90,14 @@ puts "result is #{ result.inspect }"
 # With a pipeline, syntax will look like the following:
 
 class ExtractAndPrintContacts < Carb::Flow::Pipeline
-  include Inject[:extract_from_csv, :rows_to_contacts]
+  include ManualInject[:extract_from_csv, :rows_to_contacts]
 
-  def initialize(steps: ::Carb::Steps::All, actions: ActionList.new, **args)
-    super(steps: steps, actions: actions)
+  # def initialize(steps: ::Carb::Steps::All, actions: ActionList.new, **args)
+  #   super(steps: steps, actions: actions)
+  #   inject_dependencies!(**args)
+  # end
+  def initialize(**args)
+    super
     inject_dependencies!(**args)
   end
 
@@ -103,7 +108,7 @@ class ExtractAndPrintContacts < Carb::Flow::Pipeline
   end
 end
 
-pipeline = ExtractAndPrintContacts.new
+pipeline = ExtractAndPrintContacts.new(lol: 123)
 result   = pipeline.(path: "foopath")
 
 puts "result is #{ result.inspect }"

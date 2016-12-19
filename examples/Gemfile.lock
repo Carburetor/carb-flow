@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: git@github.com:Carburetor/carb-inject.git
-  revision: 3cedfaaa8b5695e5ca688fe61156917be5229e90
+  revision: c2c462273700bbf5853da5498d750153594405e5
   tag: v0.2.0
   specs:
     carb-inject (0.2.0)

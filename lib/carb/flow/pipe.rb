@@ -13,11 +13,7 @@ module Carb::Flow
 
     # @param services_or_lambdas [Array] array of mixed {::Proc} and
     #   {::Carb::Service}
-    def initialize(
-      *services_or_lambdas,
-      steps:   ::Carb::Steps::All,
-      actions: ActionList.new
-    )
+    def initialize(*services_or_lambdas, steps: nil, actions: nil)
       super(steps: steps, actions: actions)
       @services_or_lambdas = services_or_lambdas
     end

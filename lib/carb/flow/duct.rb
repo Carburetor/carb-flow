@@ -11,7 +11,7 @@ module Carb::Flow
 
     public
 
-    def initialize(steps: ::Carb::Steps::All, actions: ActionList.new, &block)
+    def initialize(steps: nil, actions: nil, &block)
       raise ArgumentError, "Step definition required" if block.nil?
 
       super(steps: steps, actions: actions)
