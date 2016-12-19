@@ -26,10 +26,12 @@ module Carb::Flow
     def initialize(**dependencies)
       @steps   = dependencies[:steps] || ::Carb::Steps::All
       @actions = dependencies[:actions] || ActionList.new
+      @setup   = false
     end
 
     def call(**args)
-      setup(**args)
+      setup(**args) unless setup?
+      @setup = true
 
       raise EmptyError, EMPTY_MSG if actions.empty?
 
@@ -119,6 +121,10 @@ module Carb::Flow
 
     def failure?(result_monad)
       !::Carb::Monads.success_monad?(result_monad)
+    end
+
+    def setup?
+      @setup
     end
   end
 end

@@ -73,6 +73,18 @@ describe Carb::Flow::Pipeline do
     expect(@say_bar).to have_received(:call).with(bar: "barme")
   end
 
+  it "runs step twice when called twice and steps defined in #setup" do
+    def @pipeline.setup(**args)
+      step :do_nothing
+    end
+    allow(@do_nothing).to receive(:call).and_call_original
+
+    @pipeline.(foo: "foome")
+    @pipeline.(foo: "foome")
+
+    expect(@do_nothing).to have_received(:call).twice
+  end
+
   it "returns last step result" do
     @pipeline.step :say_foo
     @pipeline.step :say_bar

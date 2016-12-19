@@ -124,6 +124,8 @@ pipe = Carb::Flow::Pipe.new(
 )
 
 result = pipe.(path: "foopath")
+puts "second call"
+result = pipe.(path: "foopath")
 
 puts "result is #{ result.inspect }"
 
@@ -133,9 +135,12 @@ puts "result is #{ result.inspect }"
 
 # Last but not least, you can `subscribe` to events!
 
-# pipe.on(:start) { |obj| puts "pipe start: #{ obj }" }
-# TODO: Why it raises when invoked twice?
+pipe.on(:start) { |obj| puts "pipe start: #{ obj }" }
 pipe.(path: "foopath")
+
+# pipe start: #<Carb::Flow::Pipe:0x007fbde33a90a0>
+# Reading from foopath
+# [#<struct Contact first_name="Jon", last_name="Snow", age=17, clan="Stark">, #<struct Contact first_name="Robb", last_name="Stark", age=17, clan="Stark">]
 
 # Recommendations
 # Use `initialize` only to inject external dependencies, to make testing
