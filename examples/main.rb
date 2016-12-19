@@ -131,6 +131,12 @@ puts "result is #{ result.inspect }"
 # [#<struct Contact first_name="Jon", last_name="Snow", age=17, clan="Stark">, #<struct Contact first_name="Robb", last_name="Stark", age=17, clan="Stark">]
 # result is Right(nil)
 
+# Last but not least, you can `subscribe` to events!
+
+# pipe.on(:start) { |obj| puts "pipe start: #{ obj }" }
+# TODO: Why it raises when invoked twice?
+pipe.(path: "foopath")
+
 # Recommendations
 # Use `initialize` only to inject external dependencies, to make testing
 # easy. Don't use it for configuration
