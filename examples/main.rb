@@ -52,6 +52,8 @@ end
 
 Container[:rows_to_contacts] = RowsToContacts.new
 
+# === USAGE ===
+
 pipe = Carb::Flow::Duct.new do
   step Container[:extract_from_csv]
   step Container[:rows_to_contacts].curry(clan: "Stark")
