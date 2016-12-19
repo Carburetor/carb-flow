@@ -1,0 +1,51 @@
+GIT
+  remote: git@github.com:Carburetor/carb-core.git
+  revision: cb9e5db49a7e021f1c727863a66d575aad64d9c9
+  tag: v0.1.0
+  specs:
+    carb-core (0.1.0)
+
+GIT
+  remote: git@github.com:Carburetor/carb-flow.git
+  revision: b957a63cb251158b8e5221e1156a3ba83fe44a28
+  tag: v0.1.0
+  specs:
+    carb-flow (0.1.0)
+      wisper
+
+GIT
+  remote: git@github.com:Carburetor/carb-inject.git
+  revision: 4431d049ee6493b5e82732ab91c3463865907972
+  tag: v0.2.0
+  specs:
+    carb-inject (0.2.0)
+
+GIT
+  remote: git@github.com:Carburetor/carb-service.git
+  revision: 403d0d647e098731b310a96cc7c69ed09a5b9bb2
+  tag: v0.1.0
+  specs:
+    carb-service (0.1.0)
+      dry-matcher
+      dry-monads
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    dry-equalizer (0.2.0)
+    dry-matcher (0.6.0)
+    dry-monads (0.2.1)
+      dry-equalizer
+    wisper (1.6.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  carb-core!
+  carb-flow!
+  carb-inject!
+  carb-service!
+
+BUNDLED WITH
+   1.13.6

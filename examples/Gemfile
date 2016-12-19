@@ -1,0 +1,10 @@
+source "https://rubygems.org"
+
+gem "carb-core",    git: "git@github.com:Carburetor/carb-core.git",
+                    tag: "v0.1.0"
+gem "carb-service", git: "git@github.com:Carburetor/carb-service.git",
+                    tag: "v0.1.0"
+gem "carb-flow",    git: "git@github.com:Carburetor/carb-flow.git",
+                    tag: "v0.1.0"
+gem "carb-inject",  git: "git@github.com:Carburetor/carb-inject.git",
+                    tag: "v0.2.0"
